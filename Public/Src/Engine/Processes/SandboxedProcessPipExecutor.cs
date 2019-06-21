@@ -2902,14 +2902,6 @@ namespace BuildXL.Processes
                             continue;
                         }
 
-                        // If the access occurred under any of the pip shared opaque outputs, and the access is not happening on any known input paths (neither dynamic nor static)
-                        // then we just skip reporting the access. Together with the above step, this means that no accesses under shared opaques that represent outputs are actually
-                        // reported as observed accesses. This matches the same behavior that occurs on static outputs.
-                        if (!allInputPathsUnderSharedOpaques.Contains(entry.Key) && IsAccessUnderASharedOpaque(firstAccess, dynamicWriteAccesses, out _))
-                        {
-                            continue;
-                        }
-
                         ObservationFlags observationFlags = ObservationFlags.None;
 
                         if (isProbe)
