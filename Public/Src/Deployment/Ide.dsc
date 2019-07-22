@@ -11,27 +11,27 @@ namespace Ide {
     export const deployment : Deployment.Definition = {
         contents: [
             ...addIfLazy(Context.getCurrentHost().os === "win", () => [{
-                file: importFrom("BuildXL.Ide.VsIntegration").withQualifier({
+                file: importFrom("BuildXL.Ide.VsIntegration").BuildXLVsPackage.withQualifier({
                     configuration: qualifier.configuration,
                     targetFramework: "net472",
                     targetRuntime: "win-x64"}
-                    ).BuildXLVsPackage.vsix,
+                    ).vsix,
                 targetFileName: a`BuildXL.vs.vsix`,
             },
             {
-                file: importFrom("BuildXL.Ide").withQualifier({
+                file: importFrom("BuildXL.Ide").LanguageService.Server.withQualifier({
                     configuration: qualifier.configuration,
-                    targetFramework:"net472",
+                    targetFramework:"netcoreapp3.0",
                     targetRuntime: "win-x64"}
-                    ).LanguageService.Server.vsix,
+                    ).vsix,
                 targetFileName: a`BuildXL.vscode.win.vsix`,
             }]),
             {
-                file: importFrom("BuildXL.Ide").withQualifier({
+                file: importFrom("BuildXL.Ide").LanguageService.Server.withQualifier({
                     configuration: qualifier.configuration,
                     targetFramework:"netcoreapp3.0",
                     targetRuntime: "osx-x64"}
-                    ).LanguageService.Server.vsix,
+                    ).vsix,
                 targetFileName: a`BuildXL.vscode.osx.vsix`,
             }
         ],
