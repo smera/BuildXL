@@ -44,6 +44,6 @@ namespace BuildXL.Utilities.Configuration.Mutable
         public List<string> DependentPackageIdsToIgnore { get; private set; }
 
         /// <inheritdoc />
-        public bool ForceFullFrameworkQualifiersOnly { get; private set; } = false;
+        public bool ForceFullFrameworkQualifiersOnly { get; private set; }
     }
 }
