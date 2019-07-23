@@ -20,10 +20,12 @@ import { LogFileLocationNotification } from './notifications/logFileNotification
 import { WorkspaceLoadingNotification } from './notifications/workspaceLoadingNotification';
 import { FindReferenceNotification } from './notifications/findReferenceNotification';
 import { createDominoProjectBrowser } from './ProjectManagement/projectBrowser';
+import { LanguageManager } from './languages/languageManager';
 
 var languageClient : LanguageClient = undefined;
 var extensionContext : ExtensionContext = undefined;
 var createdProjectBrowser : boolean = false;
+var languageManager : LanguageManager = undefined;
 
 const enum ClientType
 {
@@ -112,6 +114,11 @@ export function activate(context: ExtensionContext) {
         createDominoProjectBrowser(languageClient, context);
     });
     
+    languageManager = new LanguageManager();
+    languageManager.activate(languageClient);
+
+    // Setup the language 
+
     // Register language configuration
     registerLanguageConfiguration();
 }

@@ -13,6 +13,7 @@ using System.Threading.Tasks;
 using BuildXL.Utilities;
 using BuildXL.Utilities.Instrumentation.Common;
 using BuildXL.Ide.JsonRpc;
+using BuildXL.Ide.LanguageServer.Languages;
 using BuildXL.Ide.LanguageServer.Providers;
 using BuildXL.Ide.LanguageServer.Tracing;
 using BuildXL.Storage;
@@ -55,6 +56,9 @@ namespace BuildXL.Ide.LanguageServer
         [CanBeNull]
         private ProjectManagementProvider m_projectManagementProvider;
 
+        [CanBeNull]
+        private LanguageProvider m_languageProvider;
+
         private Uri m_rootUri;
 
         private readonly object m_loadWorkspaceLock = new object();
@@ -88,6 +92,7 @@ namespace BuildXL.Ide.LanguageServer
             // We need to create the project management provider before we start listening on the
             // RPC channel as you cannot attach them after it has started listening.
             m_projectManagementProvider = new ProjectManagementProvider(GetAppStateDelegate(), m_mainRpcChannel);
+            m_languageProvider = new LanguageProvider(GetAppStateDelegate(), m_mainRpcChannel);
 
             m_tracer = new Tracer(m_mainRpcChannel, pathToLogFile, EventLevel.Verbose, EventLevel.Informational);
 
@@ -119,7 +124,8 @@ namespace BuildXL.Ide.LanguageServer
             // We need to create the project management provider before we start listening on the
             // RPC channel as you cannot attach them after it has started listening.
             m_projectManagementProvider = new ProjectManagementProvider(GetAppStateDelegate(), m_mainRpcChannel);
-        }
+            m_languageProvider = new LanguageProvider(GetAppStateDelegate(), m_mainRpcChannel);
+       }
 
         internal static App CreateForTesting(StreamJsonRpc.JsonRpc jsonRpc, TestContext testContext)
         {

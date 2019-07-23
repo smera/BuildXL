@@ -267,7 +267,8 @@
     "vscode-languageclient": "^3.5.0",
     "vscode-nls": "^2.0.2",
     "vscode-debugprotocol": "^1.24.0",
-    "vscode-debugadapter": "^1.24.0"
+    "vscode-debugadapter": "^1.24.0",
+    "vscode-cpptools": "^2.1.2"
   },
   "directories": {
     "bin": "./bin"

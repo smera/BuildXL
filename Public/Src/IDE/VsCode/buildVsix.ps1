@@ -12,7 +12,6 @@ $pluginDest = Join-Path $scriptRoot "client" | Join-Path -ChildPath "bin"
 $vscodeClient = Join-Path $scriptRoot "client"
 
 echo "Building latest language service"
-
 cmd /c "$bxl /f:spec='Public\Src\IDE\LanguageServer\BuildXL.Ide.LanguageServer.dsc' /scrub /q:$configuration" 
 
 if ($LastExitCode -ne 0) {
