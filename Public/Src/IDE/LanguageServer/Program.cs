@@ -31,6 +31,8 @@ namespace BuildXL.Ide.LanguageServer
         /// <nodoc />
         public static void Main(string[] args)
         {
+            System.Diagnostics.Debugger.Launch();
+
             string pipeName = null;
             string sockFile = null;
             

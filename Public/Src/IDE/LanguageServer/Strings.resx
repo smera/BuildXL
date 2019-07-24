@@ -78,7 +78,10 @@
   <data name="WorkspaceParsingFailed" xml:space="preserve">
     <value>Workspace parsing failed. Log file avaliable at '{0}'.</value>
   </data>
-  <data name="WorkspaceParsingFailedCannotPerformAction" xml:space="preserve">
+    <data name="WorkspaceParsingFailedCannotPerformAction" xml:space="preserve">
     <value>Cannot process action as workspace has not yet been loaded</value>
+  </data>
+    <data name="NotAValidPath" xml:space="preserve">
+    <value>Cannot satisfy request for path '{0}'. This is not a valid absolute path.</value>
   </data>
 </root>

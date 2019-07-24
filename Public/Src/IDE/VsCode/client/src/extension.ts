@@ -84,6 +84,10 @@ export function activate(context: ExtensionContext) {
 
         // Need to set-up tracer explicitely to enable push notifications into the output window.
         OutputTracer.setUpTracer(languageClient);
+
+        // Setup the language manager for intellisense for target languages
+        languageManager = new LanguageManager();
+        languageManager.activate(languageClient);
     });
 
     // Now start the client
@@ -113,10 +117,6 @@ export function activate(context: ExtensionContext) {
         // Set up the DScript project browser.
         createDominoProjectBrowser(languageClient, context);
     });
-    
-    // Setup the language manager for intellisense for target languages
-    languageManager = new LanguageManager();
-    languageManager.activate(languageClient);
 
     // Register language configuration
     registerLanguageConfiguration();

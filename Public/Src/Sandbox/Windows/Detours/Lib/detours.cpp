@@ -31,6 +31,12 @@
 #error Must define one of DETOURS_32BIT or DETOURS_64BIT
 #endif
 
+#ifdef DEMOWORKS
+    int x = 1;
+#else
+    int x = 2;
+#endif
+
 //////////////////////////////////////////////////////////////////////////////
 //
 struct _DETOUR_ALIGN

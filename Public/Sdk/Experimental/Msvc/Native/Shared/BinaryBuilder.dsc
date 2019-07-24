@@ -13,6 +13,7 @@ namespace Binary {
             {name: "_UNICODE"},
             {name: "UNICODE"},
             {name: "VERBOSE", value: "0"},
+            {name: "DEMOWORKS"}
         ],
         includes: [],
         frameworks: [],

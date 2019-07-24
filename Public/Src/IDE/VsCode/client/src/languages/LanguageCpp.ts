@@ -9,6 +9,8 @@ import {
 import { CancellationToken, RequestType } from 'vscode-jsonrpc';
 import * as vscode from 'vscode';
 import { LanguageClient } from 'vscode-languageclient';
+import { DebugSession } from 'vscode-debugadapter';
+import { debug } from 'util';
 
 /**
  *  JSON-RPC requests
@@ -93,8 +95,25 @@ export class LanguageCpp implements CustomConfigurationProvider {
         }
 
         var result = await this.languageClient.sendRequest(ProvideConfigurationsRequest, args, token);
-        
-        return result.sourceFileConfigurations;
+        var sourceFileConfigurations : SourceFileConfigurationItem[] = [];
+
+        // Update the paths to vscode uri's
+        for (var sourceFileConfiguration of result.sourceFileConfigurations)
+        {
+            if (typeof sourceFileConfiguration.uri == "string")
+            {
+                sourceFileConfigurations.push({
+                    uri: vscode.Uri.file(sourceFileConfiguration.uri),
+                    configuration: sourceFileConfiguration.configuration
+                });
+            }
+            else
+            {
+                sourceFileConfigurations.push(sourceFileConfiguration);
+            }
+        }
+
+        return sourceFileConfigurations;
     }
 
     /**

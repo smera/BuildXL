@@ -14,13 +14,13 @@ namespace BuildXL.Ide.JsonRpc
         /// <summary>
         /// The URI of the source file. It should follow the file URI scheme and represent an absolute path to the file.
         /// </summary>
-        [DataMember(Name = "sourceFileConfigurations")]
+        [DataMember(Name = "uri")]
         public string Uri { get; set; }
 
         /// <summary>
         /// The IntelliSense configuration for [uri](#SourceFileConfigurationItem.uri)
         /// </summary>
-        [DataMember(Name = "sourceFileConfigurations")]
+        [DataMember(Name = "configuration")]
         public SourceFileConfiguration Configuration { get; set; }
     }
 }

@@ -253,13 +253,23 @@ function evaluateOneSourceFile(
         Cmd.argument(Artifact.input(source))
     ];
 
+    // TODO: We don't have metadata on pips yet, so use tags for this
+    const ideTags = [
+        // TODO: C++ sdk has weird model for includes. Just matching for now
+        "ide.includes:" + (includes.isEmpty() ? includeSearchDirs : [...includeSearchDirs, Context.getSpecFileDirectory()]).map(d => d.path.toDiagnosticString()).join(";"),
+        "ide.defines:" + (args.preprocessorSymbols || []).mapDefined(Shared.preprocessorSymbolToString).join(";"),
+    ];
+
     let result = Transformer.execute({
         tool: args.tool || importFrom("VisualCpp").clTool,
         workingDirectory: outDir,
         arguments: cmdArgs,
         dependencies: [...includes, ...implicitInputs],
         implicitOutputs: implicitOutputs,
-        tags: args.tags,
+        tags: [
+            ...ideTags,
+            ...(args.tags || []),
+        ],
     });
 
     let compOutput = <CompilationOutput> {

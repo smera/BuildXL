@@ -20,6 +20,8 @@
   "main": "./out/src/extension",
   "activationEvents": [
     "onLanguage:DScript",
+    "onLanguage:cpp",
+    "onLanguage:c",
     "onCommand:DScript.reloadWorkspace"
   ],
   "contributes": {
