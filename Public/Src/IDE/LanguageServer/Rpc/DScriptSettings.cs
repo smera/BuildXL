@@ -41,5 +41,9 @@ namespace BuildXL.Ide.LanguageServer
         /// <nodoc />
         [DataMember(Name = "turnOnSolutionExplorer")]
         public bool TurnOnSolutionExplorer { get; set; }
+
+        /// <nodoc />
+        [DataMember(Name = "turnOnCppLanguageService")]
+        public bool TurnOnCppLanguageService { get; set; }
     }
 }

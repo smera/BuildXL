@@ -14,21 +14,30 @@ using BuildXL.FrontEnd.Script.Analyzer;
 using BuildXL.FrontEnd.Core;
 using Microsoft.VisualStudio.LanguageServer.Protocol;
 using TypeScript.Net.Types;
+using BuildXL.Pips;
+using BuildXL.FrontEnd.Sdk;
+using BuildXL.Engine;
 
 namespace BuildXL.Ide.LanguageServer.Providers
 {
     /// <summary>
-    /// Incrementally recomputes the workspace based on individual document change events
+    /// Incrementally recomputes the language service semantic model based on individual document change events
     /// </summary>
-    public sealed class IncrementalWorkspaceProvider : IDisposable
+    public sealed class IncrementalLanguageModelProvider : IDisposable
     {
         // Time that are waited from the last document change event and before a workspace recomputation occurs
         private static readonly TimeSpan RecompilationTimeout = TimeSpan.FromMilliseconds(125);
-
+        private readonly FrontEndContext m_frontEndContext;
+        private readonly EngineContext m_engineContext;
+        private readonly FrontEndEngineAbstraction m_engineAbstraction;
+        private readonly EventHandler<WorkspaceProgressEventArgs> m_progressHandler;
+        private readonly bool m_skipNuget;
+        private readonly AbsolutePath m_rootFolder;
         private readonly FrontEndHostController m_controller;
         private Workspace m_workspace;
         private readonly TextDocumentManager m_documentManager;
         private readonly TestContext? m_testContext;
+        private readonly LanguageModel m_languageModel;
         private readonly PathTable m_pathTable;
 
         private readonly object m_recomputationLock = new object();
@@ -42,17 +51,37 @@ namespace BuildXL.Ide.LanguageServer.Providers
 
         private bool m_disposed = false;
 
+        private bool SchedulePips => m_languageModel.PipGraph != null;
+
         /// <summary>
         /// The given workspace represents the original workspace. A callback is invoked every time this provider decides to recompute the workspace.
         /// </summary>
-        public IncrementalWorkspaceProvider(FrontEndHostController controller, PathTable pathTable, Workspace workspace, TextDocumentManager documentManager, TestContext? testContext)
+        public IncrementalLanguageModelProvider(
+            FrontEndContext frontEndContext,
+            EngineContext engineContext,
+            FrontEndEngineAbstraction engineAbstraction,
+            EventHandler<WorkspaceProgressEventArgs> progressHandler,
+            bool skipNuget,
+            AbsolutePath rootFolder,
+            FrontEndHostController controller, 
+            Workspace workspace, 
+            TextDocumentManager documentManager, 
+            IPipGraph pipGraph, 
+            TestContext? testContext)
         {
+            m_frontEndContext = frontEndContext;
+            m_engineContext = engineContext;
+            m_engineAbstraction = engineAbstraction;
+            m_progressHandler = progressHandler;
+            m_skipNuget = skipNuget;
+            m_rootFolder = rootFolder;
             m_controller = controller;
-            m_workspace = workspace;
             m_documentManager = documentManager;
             m_testContext = testContext;
+            m_languageModel = new LanguageModel(workspace, pipGraph);
+            m_workspace = m_languageModel.Workspace;
             documentManager.Changed += DocumentChanged;
-            m_pathTable = pathTable;
+            m_pathTable = m_engineContext.PathTable;
             m_timer = new Timer(_ => RecomputeWorkspaceForLatestChangedDocuments(), state: null, dueTime: Timeout.Infinite, period: Timeout.Infinite);
         }
 
@@ -60,12 +89,12 @@ namespace BuildXL.Ide.LanguageServer.Providers
         /// Threads that want to make sure there are not in-flight text changes that don't have an associated workspace yet should call
         /// this to wait until all text changes have been applied
         /// </summary>
-        public Workspace WaitForRecomputationToFinish()
+        public LanguageModel WaitForRecomputationToFinish()
         {
             ThrowObjectDisposedExceptionIfNeeded();
 
             m_recomputationInProgress.WaitOne();
-            return m_workspace;
+            return m_languageModel;
         }
 
         /// <summary>
@@ -77,7 +106,7 @@ namespace BuildXL.Ide.LanguageServer.Providers
         {
             if (m_disposed)
             {
-                throw new ObjectDisposedException("The instance of IncrementalWorkspaceProvider is already disposed.");
+                throw new ObjectDisposedException("The instance of IncrementalLanguageModelProvider is already disposed.");
             }
         }
 
@@ -181,8 +210,8 @@ namespace BuildXL.Ide.LanguageServer.Providers
 
             try
             {
-                var updatedWorkspace = GetUpdatedWorkspace(parsedModule, moduleDefinition, path);
-                m_workspace = updatedWorkspace;
+                var updatedSemanticModel = GetUpdatedLanguageModel(parsedModule, moduleDefinition, path);
+                m_workspace = updatedSemanticModel.Workspace;
             }
             catch (Exception e)
             {
@@ -191,7 +220,7 @@ namespace BuildXL.Ide.LanguageServer.Providers
             }
         }
 
-        private Workspace GetUpdatedWorkspace(ParsedModule parsedModule, ModuleDefinition moduleDefinition, AbsolutePath path)
+        private LanguageModel GetUpdatedLanguageModel(ParsedModule parsedModule, ModuleDefinition moduleDefinition, AbsolutePath path)
         {
             // Need to use both 'ParsedModule' and 'ModuleDefinition' in case if the 'path' is newly added
             // file and was not parsed yet.
@@ -248,14 +277,27 @@ namespace BuildXL.Ide.LanguageServer.Providers
                 }
             }
 
-            var lintedWorkspace = WorkspaceBuilder.CreateLintedWorkspaceForChangedSpecs(
+            // If we are not scheduling pips, let's make sure the workspace is fully linted
+            // (if we are, we will be linting anyway)
+            if (!SchedulePips)
+            {
+                var lintedWorkspace = WorkspaceBuilder.CreateLintedWorkspaceForChangedSpecs(
                 semanticWorkspace,
                 specsToLint,
                 m_controller.FrontEndContext.LoggingContext,
                 m_controller.FrontEndConfiguration,
                 m_controller.FrontEndContext.PathTable);
 
-            return lintedWorkspace;
+                return new LanguageModel(lintedWorkspace, pipGraph: null);
+            }
+
+            if (!WorkspaceBuilder.TrySchedulePipsForExistingWorkspace(m_frontEndContext, m_engineContext, m_engineAbstraction, m_progressHandler, m_rootFolder, semanticWorkspace, m_skipNuget, out var pipGraph))
+            {
+                // TODO: error handling missing. For now, just don't swallow the error.
+                throw new Exception("Cannot schedule pips for workspace");
+            }
+
+            return new LanguageModel(semanticWorkspace, pipGraph);
         }
 
         /// <inheritdoc/>

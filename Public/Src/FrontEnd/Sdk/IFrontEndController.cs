@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using BuildXL.Engine.Cache;
+using BuildXL.FrontEnd.Sdk.Workspaces;
 using BuildXL.Pips;
 using BuildXL.Utilities;
 using BuildXL.Utilities.Configuration;
@@ -47,6 +48,18 @@ namespace BuildXL.FrontEnd.Sdk
             [NotNull]EvaluationFilter evaluationFilter,
             [NotNull]IConfiguration configuration,
             [NotNull]IStartupConfiguration startupConfiguration);
+
+        /// <summary>
+        /// Asks the frontEndController to construct a pipGraph based on a workspace that is already parsed and analyzed.
+        /// </summary>
+        bool SchedulePipsForExistingWorkspace(
+            Task<Possible<EngineCache>> cacheTask,
+            IPipGraph graph,
+            IStartupConfiguration startupConfiguration,
+            IConfiguration configuration,
+            EvaluationFilter evaluationFilter,
+            IWorkspace workspace,
+            FrontEndEngineAbstraction engineAbstraction);
 
         /// <summary>
         /// Log some statistics with an option to show statistcs about the slowest procceses. The defaul is false.

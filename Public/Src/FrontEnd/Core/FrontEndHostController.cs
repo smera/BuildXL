@@ -17,6 +17,7 @@ using BuildXL.FrontEnd.Script.Constants;
 using BuildXL.FrontEnd.Sdk;
 using BuildXL.FrontEnd.Sdk.Evaluation;
 using BuildXL.FrontEnd.Sdk.FileSystem;
+using BuildXL.FrontEnd.Sdk.Workspaces;
 using BuildXL.FrontEnd.Workspaces;
 using BuildXL.FrontEnd.Workspaces.Core;
 using BuildXL.Pips;
@@ -460,6 +461,103 @@ namespace BuildXL.FrontEnd.Core
                 m_logger.FrontEndEvaluatePhaseStart,
                 m_logger.FrontEndEvaluatePhaseComplete,
                 delegate(LoggingContext nestedLoggingContext, ref EvaluateStatistics statistics)
+                {
+                    // Spec change information may not be available due to corrupted engine cache, USNJournal not working, etc.
+                    // When it is available, both engineAbstraction.GetChangedFiles() and GetUnchangedFiles() is guaranteed to be non-null
+                    if (configuration.FrontEnd.UseGraphPatching() && engineAbstraction.IsSpecChangeInformationAvailable())
+                    {
+                        ReloadUnchangedPartsOfTheGraph(
+                            graph,
+                            changedPaths: ConvertPaths(engineAbstraction.GetChangedFiles()),
+                            unchangedPaths: ConvertPaths(engineAbstraction.GetUnchangedFiles()));
+                    }
+
+                    bool evaluateSucceeded = DoPhaseEvaluate(evaluationFilter, qualifiersToEvaluate);
+                    NotifyResolversEvaluationIsFinished();
+                    Engine.FinishTrackingBuildParameters();
+
+                    return evaluateSucceeded;
+                }))
+            {
+                return false;
+            }
+
+            return true;
+        }
+
+        /// <inheritdoc/>
+        public bool SchedulePipsForExistingWorkspace(
+            Task<Possible<EngineCache>> cacheTask,
+            IPipGraph graph,
+            IStartupConfiguration startupConfiguration, 
+            IConfiguration configuration, 
+            EvaluationFilter evaluationFilter, 
+            IWorkspace workspace, 
+            FrontEndEngineAbstraction engineAbstraction)
+        {
+            Contract.Requires(cacheTask != null);
+            Contract.Requires(configuration != null);
+            Contract.Requires(engineAbstraction != null);
+            Contract.Requires(evaluationFilter != null);
+            Contract.Requires(startupConfiguration != null);
+
+            InitializeInternal(cacheTask);
+            SetState(engineAbstraction, graph, configuration);
+
+            if (!TryGetQualifiers(configuration, startupConfiguration.QualifierIdentifiers, out QualifierId[] qualifiersToEvaluate))
+            {
+                return false;
+            }
+
+            // Frontend and resolver initialization happens before any other phase. Frontend initialization should happen before any 
+            // access to the workspace resolver factory: a frontend may trigger a workspace resolver creation with a particular setting.
+            // TODO: during workspace construction the workspace resolver factory is accessed directly, which is wrong from an architecture
+            // point of view. Only the corresponding frontend should manage workspace resolver creation.
+            if (!ProcessPhase(
+                EnginePhases.InitializeResolvers,
+                configuration,
+                m_logger.FrontEndInitializeResolversPhaseStart,
+                m_logger.FrontEndInitializeResolversPhaseComplete,
+                delegate (LoggingContext nestedLoggingContext, ref InitializeResolversStatistics statistics)
+                {
+                    // TODO: Use nestedLoggingContext for resolver errors
+                    var success = TryInitializeFrontEndsAndResolvers(configuration, qualifiersToEvaluate);
+
+                    statistics.ResolverCount = success ? m_resolvers.Length : 0;
+
+                    return success;
+                }))
+            {
+                return false;
+            }
+
+            // TODO: abstraction leaks here
+            Workspace = (Workspace) workspace;
+
+            if (!ProcessPhase(
+               EnginePhases.ConstructEvaluationModel,
+               configuration,
+               m_logger.FrontEndConvertPhaseStart,
+               m_logger.FrontEndConvertPhaseComplete,
+               delegate (LoggingContext nestedLoggingContext, ref ParseStatistics statistics)
+               {
+                   var result = DoPhaseConvert(evaluationFilter);
+
+                   statistics.FileCount = result.NumberOfSpecsConverted;
+                   statistics.ModuleCount = result.NumberOfModulesConverted;
+
+                   return result.Succeeded;
+               }))
+            {
+                return false;
+            }
+
+            if (!ProcessPhase(
+                EnginePhases.Evaluate,
+                configuration,
+                m_logger.FrontEndEvaluatePhaseStart,
+                m_logger.FrontEndEvaluatePhaseComplete,
+                delegate (LoggingContext nestedLoggingContext, ref EvaluateStatistics statistics)
                 {
                     // Spec change information may not be available due to corrupted engine cache, USNJournal not working, etc.
                     // When it is available, both engineAbstraction.GetChangedFiles() and GetUnchangedFiles() is guaranteed to be non-null

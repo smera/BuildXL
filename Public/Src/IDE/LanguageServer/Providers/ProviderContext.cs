@@ -19,7 +19,7 @@ namespace BuildXL.Ide.LanguageServer.Providers
 
         /// <nodoc/>
         [NotNull]
-        public IncrementalWorkspaceProvider IncrementalWorkspaceProvider { get; }
+        public IncrementalLanguageModelProvider IncrementalLanguageModelProvider { get; }
 
         /// <nodoc/>
         [NotNull]
@@ -43,7 +43,7 @@ namespace BuildXL.Ide.LanguageServer.Providers
         /// <nodoc/>
         public ProviderContext(
             [NotNull] StreamJsonRpc.JsonRpc jsonRpc,
-            [NotNull] IncrementalWorkspaceProvider incrementalWorkspaceProvider,
+            [NotNull] IncrementalLanguageModelProvider incrementalLanguageModelProvider,
             [NotNull] PathTable pathTable,
             [NotNull] Logger logger,
             [NotNull] LoggingContext loggingContext,
@@ -51,7 +51,7 @@ namespace BuildXL.Ide.LanguageServer.Providers
             TestContext? testContext = null)
         {
             JsonRpc = jsonRpc;
-            IncrementalWorkspaceProvider = incrementalWorkspaceProvider;
+            IncrementalLanguageModelProvider = incrementalLanguageModelProvider;
             PathTable = pathTable;
             TestContext = testContext;
             Logger = logger;

@@ -86,7 +86,7 @@ namespace BuildXL.Ide.LanguageServer
 
             var addSourceFileParams = token.ToObject<AddSourceFileToProjectParams>();
 
-            var workspace = appState.IncrementalWorkspaceProvider.WaitForRecomputationToFinish();
+            var workspace = appState.IncrementalLanguageModelProvider.WaitForRecomputationToFinish().Workspace;
             var uri = new Uri(addSourceFileParams.ProjectSpecFileName);
 
             if (uri.TryGetSourceFile(workspace, appState.PathTable, out var projectSourceFile))

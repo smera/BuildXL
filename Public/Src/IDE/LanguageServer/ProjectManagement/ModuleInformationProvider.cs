@@ -48,7 +48,7 @@ namespace BuildXL.Ide.LanguageServer
 
             var modulesForWorkspaceParams = token.ToObject<ModulesForWorkspaceParams>();
 
-            var workspace = appState.IncrementalWorkspaceProvider.WaitForRecomputationToFinish();
+            var workspace = appState.IncrementalLanguageModelProvider.WaitForRecomputationToFinish().Workspace;
             var workspaceModules = new List<BuildXL.Ide.JsonRpc.ModuleDescriptor>(workspace.Modules.Count);
             foreach(var mod in workspace.Modules)
             {
@@ -91,7 +91,7 @@ namespace BuildXL.Ide.LanguageServer
 
             var getSpecsForModuleParams = token.ToObject<SpecsForModuleParams>();
 
-            var workspace = appState.IncrementalWorkspaceProvider.WaitForRecomputationToFinish();
+            var workspace = appState.IncrementalLanguageModelProvider.WaitForRecomputationToFinish().Workspace;
 
             var moduleDescriptor = 
 

@@ -402,7 +402,7 @@ namespace BuildXL.Ide.LanguageServer
 
         private LanguageServiceProviders InitializeProviders(AppState appState)
         {
-            var providerContext = new ProviderContext(m_mainRpcChannel, appState.IncrementalWorkspaceProvider, appState.PathTable, Logger, LoggingContext, () => appState, m_testContext);
+            var providerContext = new ProviderContext(m_mainRpcChannel, appState.IncrementalLanguageModelProvider, appState.PathTable, Logger, LoggingContext, () => appState, m_testContext);
             return new LanguageServiceProviders(providerContext, appState.EngineAbstraction, m_progressReporter);
         }
 
@@ -410,6 +410,7 @@ namespace BuildXL.Ide.LanguageServer
         [JsonRpcMethod("textDocument/didOpen")]
         protected void DidOpenTextDocument(JToken token)
         {
+            Debugger.Launch();
             if (TryWaitForWorkspaceLoaded(out var appState, out var providers))
             {
                 var document = token.ToObject<DidOpenTextDocumentParams>().TextDocument;

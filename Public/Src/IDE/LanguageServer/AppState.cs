@@ -34,19 +34,19 @@ namespace BuildXL.Ide.LanguageServer
         public PathTable PathTable { get; }
 
         /// <nodoc />
-        public IncrementalWorkspaceProvider IncrementalWorkspaceProvider { get; }
+        public IncrementalLanguageModelProvider IncrementalLanguageModelProvider { get; }
 
         private AppState(
             FrontEndEngineAbstraction engineAbstraction,
             TextDocumentManager documentManager,
             PathTable pathTable,
-            IncrementalWorkspaceProvider incrementalWorkspaceProvider,
+            IncrementalLanguageModelProvider incrementalSemanticModelProvider,
             Workspace workspace)
         {
             EngineAbstraction = engineAbstraction;
             DocumentManager = documentManager;
             PathTable = pathTable;
-            IncrementalWorkspaceProvider = incrementalWorkspaceProvider;
+            IncrementalLanguageModelProvider = incrementalSemanticModelProvider;
             m_workspace = workspace;
         }
 
@@ -98,6 +98,11 @@ namespace BuildXL.Ide.LanguageServer
 
             var rootFolderAsAbsolutePath = rootFolder.ToAbsolutePath(pathTable);
 
+            var skipNuget = settings?.SkipNuget ?? false; // Do not skip nuget by default.
+
+            // the cpp language service needs the pip graph in addition to the workspace
+            var schedulePips = settings?.TurnOnCppLanguageService ?? false;
+
             if (!WorkspaceBuilder.TryBuildWorkspaceForIde(
                 frontEndContext: frontEndContext,
                 engineContext: engineContext,
@@ -105,21 +110,37 @@ namespace BuildXL.Ide.LanguageServer
                 rootFolder: rootFolderAsAbsolutePath,
                 progressHandler: progressHandler,
                 workspace: out var workspace,
-                skipNuget: settings?.SkipNuget ?? false, // Do not skip nuget by default.
+                pipGraph: out var pipGraph,
+                skipNuget: skipNuget, 
+                schedulePips: schedulePips, 
                 controller: out var controller))
             {
                 // The workspace builder fails when the workspace contains any errors
                 // however, we bail out only if the workspace is null, which happens only
-                // when the config could not be parsed
-                if (workspace == null || controller == null)
+                // when the config could not be parsed.
+                // If scheduling is required, the pip graph has to succeed as well
+                if (workspace == null || controller == null || (schedulePips && pipGraph == null))
                 {
                     return null;
                 }
             }
 
-            var incrementalWorkspaceProvider = new IncrementalWorkspaceProvider(controller, pathTable, workspace, documentManager, testContext);
+            Contract.Assert(settings?.TurnOnCppLanguageService != true || pipGraph != null, "The pip graph should not be null on success when requested");
 
-            return new AppState(engineAbstraction, documentManager, pathTable, incrementalWorkspaceProvider, workspace);
+            var incrementalSemanticModelProvider = new IncrementalLanguageModelProvider(
+                frontEndContext,
+                engineContext,
+                engineAbstraction,
+                progressHandler,
+                skipNuget,
+                rootFolderAsAbsolutePath,
+                controller, 
+                workspace, 
+                documentManager, 
+                pipGraph, 
+                testContext);
+
+            return new AppState(engineAbstraction, documentManager, pathTable, incrementalSemanticModelProvider, workspace);
         }
 
         /// <summary>
@@ -148,7 +169,7 @@ namespace BuildXL.Ide.LanguageServer
             {
                 m_disposed = true;
 
-                IncrementalWorkspaceProvider.Dispose();
+                IncrementalLanguageModelProvider.Dispose();
             }
         }
     }

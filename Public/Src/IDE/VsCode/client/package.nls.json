@@ -20,5 +20,6 @@
     "DScript.projectModuleBrowser.title": "BuildXL Module Browser",
     "DScript.projectDirectoryBrowser.title": "BuildXL Solution Explorer",
     "DScript.turnOnModuleBrowser.desc" : "Enable module browser",
-    "DScript.turnOnSolutionExplorer.desc" : "Enable solution explorer"
+    "DScript.turnOnSolutionExplorer.desc" : "Enable solution explorer",
+    "DScript.turnOnCppLanguageService.desc" : "Enable the language service for native code (intellisense, go to definition, etc.)"
 }

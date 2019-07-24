@@ -241,6 +241,11 @@
           "type": "boolean",
           "default": false,
           "description": "%DScript.turnOnSolutionExplorer.desc%"
+        },
+        "DScript.turnOnCppLanguageService": {
+          "type": "boolean",
+          "default": false,
+          "description": "%DScript.turnOnCppLanguageService.desc%"
         }
       }
     },
@@ -261,7 +266,7 @@
     "@types/mocha": "^2.2.33",
     "@types/node": "^6.0.52",
     "typescript": "^2.6.1",
-    "vscode": "^1.1.33"
+    "vscode": "^1.1.35"
   },
   "dependencies": {
     "vscode-languageclient": "^3.5.0",

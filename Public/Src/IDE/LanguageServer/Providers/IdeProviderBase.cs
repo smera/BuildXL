@@ -28,7 +28,7 @@ namespace BuildXL.Ide.LanguageServer.Providers
         /// <summary>
         /// Last computed workspace. If there are any in-flight changes, getting the workspace blocks the thread until those changes are applied.
         /// </summary>
-        protected Workspace Workspace => m_incrementalWorkspaceProvider.WaitForRecomputationToFinish();
+        protected Workspace Workspace => m_incrementalLanguageModelProvider.WaitForRecomputationToFinish().Workspace;
 
         /// <nodoc/>
         protected ITypeChecker TypeChecker => Workspace.GetSemanticModel().TypeChecker;
@@ -53,7 +53,7 @@ namespace BuildXL.Ide.LanguageServer.Providers
         /// <nodoc/>
         protected LoggingContext LoggingContext => ProviderContext.LoggingContext;
 
-        private readonly IncrementalWorkspaceProvider m_incrementalWorkspaceProvider;
+        private readonly IncrementalLanguageModelProvider m_incrementalLanguageModelProvider;
 
         /// <nodoc />
         protected IdeProviderBase(ProviderContext providerContext)
@@ -61,8 +61,8 @@ namespace BuildXL.Ide.LanguageServer.Providers
             ProviderContext = providerContext;
             JsonRpc = providerContext.JsonRpc;
             PathTable = providerContext.PathTable;
-            m_incrementalWorkspaceProvider = providerContext.IncrementalWorkspaceProvider;
-            m_incrementalWorkspaceProvider.WorkspaceRecomputed += OnWorkspaceRecomputed;
+            m_incrementalLanguageModelProvider = providerContext.IncrementalLanguageModelProvider;
+            m_incrementalLanguageModelProvider.WorkspaceRecomputed += OnWorkspaceRecomputed;
             ChangedTextDocumentItems = new TextDocumentItem[0];
         }
 
