@@ -34,16 +34,10 @@ namespace BuildXL.Ide.LanguageServer.Languages
 
             var result = new CanProvideConfigurationResult
             {
-                CanProvideConfiguration = CanProvideConfiguration(canProvideConfigurationParams.Uri),
+                CanProvideConfiguration = false,
             };
 
             return Result<CanProvideConfigurationResult, ResponseError>.Success(result);
-        }
-
-        /// <nodoc />
-        private bool CanProvideConfiguration(string uri)
-        {
-            return false;
         }
 
         /// <summary>
@@ -59,16 +53,10 @@ namespace BuildXL.Ide.LanguageServer.Languages
 
             var result = new ProvideConfigurationsResult
             {
-                SourceFileConfigurations = ProvideConfiguration(provideConfigurationsParams.Uris),
+                SourceFileConfigurations = new SourceFileConfigurationItem[0],
             };
 
             return Result<ProvideConfigurationsResult, ResponseError>.Success(result);
-        }
-
-        /// <nodoc />
-        private SourceFileConfigurationItem[] ProvideConfiguration(string[] uris)
-        {
-            return new SourceFileConfigurationItem[0];
         }
     }
 }

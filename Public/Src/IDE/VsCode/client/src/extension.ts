@@ -114,10 +114,9 @@ export function activate(context: ExtensionContext) {
         createDominoProjectBrowser(languageClient, context);
     });
     
+    // Setup the language manager for intellisense for target languages
     languageManager = new LanguageManager();
     languageManager.activate(languageClient);
-
-    // Setup the language 
 
     // Register language configuration
     registerLanguageConfiguration();
