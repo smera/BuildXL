@@ -87,6 +87,9 @@ export function activate(context: ExtensionContext) {
 
         // Setup the language manager for intellisense for target languages
         languageManager = new LanguageManager();
+        context.subscriptions.push(commands.registerCommand('DScript.resetTargetIntellisense', () => {
+            languageManager.resetTargetIntellisense();
+        }));
         languageManager.activate(languageClient);
     });
 

@@ -19,8 +19,6 @@ const CanProvideConfigurationRequest = new RequestType<CanProvideConfigurationPa
 const ProvideConfigurationsRequest = new RequestType<ProvideConfigurationsParam, ProvideConfigurationsResult, any, any>("dscript-cpp/provideConfiguration");
 
 export class LanguageCpp implements CustomConfigurationProvider {
-
-    
     private api: CppToolsApi | undefined;
     private languageClient: LanguageClient;
     // Tracks our disposable objects
@@ -50,17 +48,25 @@ export class LanguageCpp implements CustomConfigurationProvider {
                 // Running on a version of cpptools that doesn't support v2 yet.
                 api.didChangeCustomConfiguration(this);
             }
-        }
 
         this.disposables.push(api);
 
         this.api = api;
+        }
+
         this.languageClient = languageClient;
     }
 
     public deactivate(): void {
         if (this.api) {
             this.api.dispose();
+        }
+    }
+
+    public resetTargetIntellisense() : void {
+        if (this.api) {
+            this.api.didChangeCustomConfiguration(this);
+            this.api.didChangeCustomBrowseConfiguration(this);
         }
     }
 

@@ -11,6 +11,11 @@ export class LanguageManager
         await this.cpp.activate(languageClient);
     }
 
+    public resetTargetIntellisense() : void
+    {
+        this.cpp.resetTargetIntellisense();
+    }
+
     public deactivate() : void
     {
         if (this.cpp) {

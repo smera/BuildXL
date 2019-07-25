@@ -17,6 +17,7 @@
     "DScript.debugger.launch.address.description": "TCP/IP address to attach to (default: localhost).",
     "DScript.addSourceFile.title": "Add source file",
     "DScript.addProject.title": "Add new project",
+    "DScript.resetTargetIntellisense.title": "Reset the intellisense information for target languatge (C++/C#/etc)",
     "DScript.projectModuleBrowser.title": "BuildXL Module Browser",
     "DScript.projectDirectoryBrowser.title": "BuildXL Solution Explorer",
     "DScript.turnOnModuleBrowser.desc" : "Enable module browser",

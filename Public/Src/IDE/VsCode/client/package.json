@@ -50,6 +50,11 @@
         "category": "DScript",
         "command": "DScript.addProject",
         "title": "%DScript.addProject.title%"
+      },
+      {
+        "category": "DScript",
+        "command": "DScript.resetTargetIntellisense",
+        "title": "%DScript.resetTargetIntellisense.title%"
       }
     ],
     "menus": {
